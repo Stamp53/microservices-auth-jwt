@@ -11,6 +11,12 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        - id: auth-service-route
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth/**
+          filters:
+            - PreserveHostHeader
         - id: admission-service-route
           uri: lb://ADMISSION-SERVICE
           predicates:
@@ -48,5 +54,9 @@ resilience4j:
     instances:
       admissionCircuitBreaker:
         timeoutDuration: 5s
+
+app:
+  jwt:
+    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
 
 

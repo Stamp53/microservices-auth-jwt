@@ -27,6 +27,7 @@
         <module>service-registry</module>
         <module>api-gateway</module>
         <module>admission-service</module>
+        <module>auth-service</module>
     </modules>
 
     <dependencyManagement>
