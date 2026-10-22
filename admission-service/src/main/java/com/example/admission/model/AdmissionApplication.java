@@ -63,6 +63,7 @@ public class AdmissionApplication {
 
     private LocalDateTime decisionDate;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

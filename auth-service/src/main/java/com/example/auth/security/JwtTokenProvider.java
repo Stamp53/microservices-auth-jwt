@@ -46,6 +46,18 @@ public class JwtTokenProvider {
                 .getPayload();
     }
 
+    public String getUsernameFromToken(String token) {
+        return getClaimsFromToken(token).getSubject();
+    }
+
+    public String getRoleFromToken(String token) {
+        return getClaimsFromToken(token).get("role", String.class);
+    }
+
+    public String getEmailFromToken(String token) {
+        return getClaimsFromToken(token).get("email", String.class);
+    }
+
     public boolean validateToken(String token) {
         try {
             getClaimsFromToken(token);
