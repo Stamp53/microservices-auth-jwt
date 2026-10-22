@@ -19,7 +19,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin(origins = "*")
 public class AdminController {
 
     private final ApplicationService applicationService;

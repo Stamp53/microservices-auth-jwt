@@ -363,7 +363,7 @@ export class RegisterComponent {
     fullName: '',
     email: '',
     phone: '',
-    dateOfBirth: '',
+    dateOfBirth: '2006-01-15',
     gender: 'Male',
     address: '',
     appliedClass: 'Class 11 Science',
@@ -394,7 +394,11 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err?.error?.error || err?.error?.message || 'Failed to submit application. Please check your inputs.';
+        if (err.status === 0) {
+          this.errorMessage = 'Network connection failed. Please ensure API Gateway (port 8080) is running.';
+        } else {
+          this.errorMessage = err?.error?.error || err?.error?.message || 'Failed to submit application. Please check your inputs.';
+        }
       }
     });
   }

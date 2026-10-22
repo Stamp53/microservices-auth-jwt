@@ -406,7 +406,7 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
             <div class="form-actions">
               <button
                 type="submit"
-                [disabled]="registerSubmitting || !regForm.form.valid"
+                [disabled]="registerSubmitting"
                 class="btn btn-primary"
               >
                 {{ registerSubmitting ? 'Registering...' : 'Submit Admission Registration' }}
@@ -919,7 +919,7 @@ export class AdminDashboardComponent implements OnInit {
       fullName: '',
       email: '',
       phone: '',
-      dateOfBirth: '',
+      dateOfBirth: '2006-01-15',
       gender: 'Male',
       address: '',
       appliedClass: 'Class 11 Science',
@@ -953,8 +953,12 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: (err) => {
         this.registerSubmitting = false;
-        const msg = err?.error?.error || err?.error?.message || 'Registration failed. Please check inputs.';
-        this.showAlert(msg, 'error');
+        if (err.status === 0) {
+          this.showAlert('Network connection failed. Please ensure API Gateway (port 8080) is running.', 'error');
+        } else {
+          const msg = err?.error?.error || err?.error?.message || 'Registration failed. Please check inputs.';
+          this.showAlert(msg, 'error');
+        }
       }
     });
   }

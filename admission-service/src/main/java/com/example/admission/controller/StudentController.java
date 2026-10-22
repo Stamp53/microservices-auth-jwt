@@ -17,7 +17,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/student")
-@CrossOrigin(origins = "*")
 public class StudentController {
 
     private final ApplicationService applicationService;

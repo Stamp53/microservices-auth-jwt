@@ -42,7 +42,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         Map<String, String> response = new HashMap<>();
-        response.put("error", "Invalid input format. Please check date and numeric fields.");
+        String msg = "Invalid input format. Please check date (YYYY-MM-DD) and numeric fields.";
+        if (ex.getMessage() != null && ex.getMessage().contains("LocalDate")) {
+            msg = "Please provide a valid date of birth (YYYY-MM-DD).";
+        }
+        response.put("error", msg);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
