@@ -33,14 +33,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     @Value("${app.jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
     private String jwtSecret;
 
+    // Public paths that do not require JWT validation
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
             "/auth/**",
-            "/login",
             "/register",
             "/track",
-            "/css/**",
-            "/js/**",
-            "/images/**",
+            "/track/**",
             "/h2-console/**",
             "/actuator/**",
             "/fallback/**"
@@ -51,19 +49,25 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
-        // 1. Bypass check for public endpoints
+        // 1. Allow CORS preflight requests
+        if (org.springframework.http.HttpMethod.OPTIONS.equals(request.getMethod())) {
+            return chain.filter(exchange);
+        }
+
+        // 2. Allow public endpoints
         for (String pattern : PUBLIC_ENDPOINTS) {
             if (pathMatcher.match(pattern, path)) {
                 return chain.filter(exchange);
             }
         }
 
-        // 2. Check Authorization header
+        // 3. Extract Authorization header
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
+                // Validate JWT signature and read claims
                 SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
                 Claims claims = Jwts.parser()
                         .verifyWith(key)
@@ -74,7 +78,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                 String username = claims.getSubject();
                 String role = claims.get("role", String.class);
 
-                // Forward user claims to downstream services via headers
+                // Forward identity to downstream services via headers
                 ServerHttpRequest mutatedRequest = request.mutate()
                         .header("X-Auth-Username", username != null ? username : "")
                         .header("X-Auth-Role", role != null ? role : "")
@@ -84,14 +88,11 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
             } catch (Exception ex) {
                 logger.warn("JWT validation failed for path {}: {}", path, ex.getMessage());
-                // If it was a REST request or sent a bad bearer token, reject with 401
-                if (path.startsWith("/api/") || request.getHeaders().getAccept().contains(MediaType.APPLICATION_JSON)) {
-                    return onError(exchange, "Invalid or expired JWT token: " + ex.getMessage(), HttpStatus.UNAUTHORIZED);
-                }
+                return onError(exchange, "Invalid or expired JWT token: " + ex.getMessage(), HttpStatus.UNAUTHORIZED);
             }
         }
 
-        // If no token was provided, allow downstream service to handle (e.g. formLogin/session redirect)
+        // If no token was provided, allow downstream service security to reject (or handle)
         return chain.filter(exchange);
     }
 
@@ -107,6 +108,6 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -100; // High precedence before routing
+        return -100; // Run early before routing
     }
 }

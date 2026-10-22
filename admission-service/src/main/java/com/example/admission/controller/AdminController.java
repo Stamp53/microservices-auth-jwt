@@ -6,52 +6,50 @@ import com.example.admission.dto.RejectionDto;
 import com.example.admission.model.AdmissionApplication;
 import com.example.admission.model.ApplicationStatus;
 import com.example.admission.service.ApplicationService;
-import com.example.admission.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("/admin")
+@CrossOrigin(origins = "*")
 public class AdminController {
 
     private final ApplicationService applicationService;
-    private final UserService userService;
 
-    public AdminController(ApplicationService applicationService, UserService userService) {
+    public AdminController(ApplicationService applicationService) {
         this.applicationService = applicationService;
-        this.userService = userService;
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(@RequestParam(value = "page", defaultValue = "0") int page,
-                            @RequestParam(value = "size", defaultValue = "5") int size,
-                            Model model) {
+    public ResponseEntity<?> dashboard(@RequestParam(value = "page", defaultValue = "0") int page,
+                                       @RequestParam(value = "size", defaultValue = "5") int size) {
         if (page < 0) page = 0;
         if (size <= 0) size = 5;
         Page<AdmissionApplication> applicationPage = applicationService.getApplicationsPaged(page, size);
 
-        model.addAttribute("totalCount", applicationService.countTotal());
-        model.addAttribute("pendingCount", applicationService.countPending());
-        model.addAttribute("approvedCount", applicationService.countApproved());
-        model.addAttribute("rejectedCount", applicationService.countRejected());
-        model.addAttribute("applicationPage", applicationPage);
-        model.addAttribute("recentApplications", applicationPage.getContent());
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", applicationPage.getTotalPages());
-        model.addAttribute("totalItems", applicationPage.getTotalElements());
-        return "admin/dashboard";
+        Map<String, Object> data = new HashMap<>();
+        data.put("totalCount", applicationService.countTotal());
+        data.put("pendingCount", applicationService.countPending());
+        data.put("approvedCount", applicationService.countApproved());
+        data.put("rejectedCount", applicationService.countRejected());
+        data.put("recentApplications", applicationPage.getContent());
+        data.put("currentPage", page);
+        data.put("totalPages", applicationPage.getTotalPages());
+        data.put("totalItems", applicationPage.getTotalElements());
+        return ResponseEntity.ok(data);
     }
 
     @GetMapping("/applications")
-    public String listApplications(@RequestParam(value = "status", required = false, defaultValue = "ALL") String status,
-                                   Model model) {
+    public ResponseEntity<List<AdmissionApplication>> listApplications(
+            @RequestParam(value = "status", required = false, defaultValue = "ALL") String status) {
         List<AdmissionApplication> applications;
         if ("PENDING".equalsIgnoreCase(status)) {
             applications = applicationService.getApplicationsByStatus(ApplicationStatus.PENDING);
@@ -63,107 +61,68 @@ public class AdminController {
             applications = applicationService.getAllApplications();
         }
 
-        model.addAttribute("applications", applications);
-        model.addAttribute("currentStatus", status);
-        return "admin/applications";
+        return ResponseEntity.ok(applications);
     }
 
     @GetMapping("/applications/{id}")
-    public String viewApplication(@PathVariable Long id, Model model) {
-        AdmissionApplication app = applicationService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid application ID: " + id));
-
-        model.addAttribute("admissionApp", app);
-        model.addAttribute("application", app);
-        String initialClass = app.getAssignedClass() != null ? app.getAssignedClass() : app.getAppliedClass();
-        String initialSection = app.getAssignedSection() != null ? app.getAssignedSection() : "AUTO";
-        String initialRemarks = app.getRemarks() != null ? app.getRemarks() : "";
-        model.addAttribute("approvalDto", new ApprovalDto(initialClass, initialSection, initialRemarks));
-        model.addAttribute("rejectionDto", new RejectionDto(""));
-        return "admin/application-detail";
+    public ResponseEntity<?> viewApplication(@PathVariable Long id) {
+        Optional<AdmissionApplication> appOpt = applicationService.findById(id);
+        if (appOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Invalid application ID: " + id));
+        }
+        return ResponseEntity.ok(appOpt.get());
     }
 
     @PostMapping("/applications/{id}/approve")
-    public String approveApplication(@PathVariable Long id,
-                                     @ModelAttribute("approvalDto") ApprovalDto approvalDto,
-                                     RedirectAttributes redirectAttributes) {
+    public ResponseEntity<?> approveApplication(@PathVariable Long id,
+                                               @RequestBody(required = false) ApprovalDto approvalDto) {
         try {
+            if (approvalDto == null) {
+                approvalDto = new ApprovalDto("AUTO", "AUTO", "Approved");
+            }
             AdmissionApplication app = applicationService.approveApplication(id, approvalDto);
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Application " + app.getApplicationNumber() + " approved / updated! Permanent Roll Number: " + app.getPermanentRollNumber());
+            return ResponseEntity.ok(app);
         } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
-        return "redirect:/admin/applications/" + id;
     }
 
     @PostMapping("/applications/{id}/reject")
-    public String rejectApplication(@PathVariable Long id,
-                                     @ModelAttribute("rejectionDto") RejectionDto rejectionDto,
-                                     RedirectAttributes redirectAttributes) {
+    public ResponseEntity<?> rejectApplication(@PathVariable Long id,
+                                              @RequestBody(required = false) RejectionDto rejectionDto) {
         try {
+            if (rejectionDto == null) {
+                rejectionDto = new RejectionDto("Rejected");
+            }
             AdmissionApplication app = applicationService.rejectApplication(id, rejectionDto);
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Application " + app.getApplicationNumber() + " has been rejected.");
+            return ResponseEntity.ok(app);
         } catch (Exception ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
-        return "redirect:/admin/applications/" + id;
-    }
-
-    @GetMapping("/register-student")
-    public String showAdminRegisterStudentForm(Model model) {
-        model.addAttribute("dto", new AdminStudentRegistrationDto());
-        return "admin/register-student";
     }
 
     @PostMapping("/register-student")
-    public String handleAdminRegisterStudent(@Valid @ModelAttribute("dto") AdminStudentRegistrationDto dto,
-                                             BindingResult bindingResult,
-                                             RedirectAttributes redirectAttributes,
-                                             Model model) {
-        if (dto.isCreateUserAccount() && dto.getUsername() != null && !dto.getUsername().trim().isEmpty()) {
-            if (userService.usernameExists(dto.getUsername().trim())) {
-                bindingResult.rejectValue("username", "error.user", "This username is already taken.");
-            }
-        }
-
-        int currentYear = java.time.Year.now().getValue();
-        if (dto.getEmail() != null && dto.getAppliedClass() != null 
-                && applicationService.existsByEmailAndClassAndYear(dto.getEmail().trim(), dto.getAppliedClass(), currentYear)) {
-            bindingResult.rejectValue("email", "error.duplicate", 
-                    "An application for " + dto.getAppliedClass() + " in " + currentYear + " already exists with this email.");
-        }
-
-        if (bindingResult.hasErrors()) {
-            return "admin/register-student";
-        }
-
+    public ResponseEntity<?> handleAdminRegisterStudent(@Valid @RequestBody AdminStudentRegistrationDto dto) {
         try {
             AdmissionApplication created = applicationService.adminRegisterStudent(dto);
-            String msg = "Student registration completed! Assigned Application No: " + created.getApplicationNumber();
-            if (created.getPermanentRollNumber() != null) {
-                msg += " | Permanent Roll No: " + created.getPermanentRollNumber();
-            }
-            redirectAttributes.addFlashAttribute("successMessage", msg);
-            return "redirect:/admin/applications/" + created.getId();
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (IllegalArgumentException ex) {
-            model.addAttribute("errorMessage", ex.getMessage());
-            return "admin/register-student";
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
     }
 
     @GetMapping("/reports")
-    public String classSectionReports(@RequestParam(value = "className", required = false) String className,
-                                      @RequestParam(value = "section", required = false) String section,
-                                      Model model) {
+    public ResponseEntity<?> classSectionReports(@RequestParam(value = "className", required = false) String className,
+                                                 @RequestParam(value = "section", required = false) String section) {
         List<AdmissionApplication> reportStudents = applicationService.getReport(className, section);
-        model.addAttribute("students", reportStudents);
-        model.addAttribute("selectedClass", className);
-        model.addAttribute("selectedSection", section);
-        model.addAttribute("availableClasses", applicationService.getAvailableClasses());
-        model.addAttribute("availableSections", applicationService.getAvailableSections());
-        model.addAttribute("totalEnrolled", reportStudents.size());
-        return "admin/reports";
+        Map<String, Object> data = new HashMap<>();
+        data.put("students", reportStudents);
+        data.put("selectedClass", className);
+        data.put("selectedSection", section);
+        data.put("availableClasses", applicationService.getAvailableClasses());
+        data.put("availableSections", applicationService.getAvailableSections());
+        data.put("totalEnrolled", reportStudents.size());
+        return ResponseEntity.ok(data);
     }
 }

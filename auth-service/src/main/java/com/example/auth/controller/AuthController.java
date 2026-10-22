@@ -6,8 +6,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -47,55 +45,15 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
-        try {
-            AuthResponse response = authService.refreshAccessToken(request.getRefreshToken());
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(MessageResponse.error(ex.getMessage()));
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(MessageResponse.error("Token refresh failed: " + ex.getMessage()));
-        }
-    }
-
     @PostMapping("/validate")
     public ResponseEntity<TokenValidationResponse> validateToken(@Valid @RequestBody TokenValidationRequest request) {
         TokenValidationResponse response = authService.validateToken(request.getToken());
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(MessageResponse.error("Not authenticated"));
-        }
-
-        String username;
-        if (authentication.getPrincipal() instanceof UserDetails userDetails) {
-            username = userDetails.getUsername();
-        } else {
-            username = authentication.getName();
-        }
-
-        try {
-            UserProfileResponse profile = authService.getUserProfile(username);
-            return ResponseEntity.ok(profile);
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(MessageResponse.error(ex.getMessage()));
-        }
-    }
-
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            String username = authentication.getName();
-            authService.logout(username);
-        }
+    public ResponseEntity<?> logout() {
+        // JWT is stateless; client removes the token from localStorage
         return ResponseEntity.ok(MessageResponse.success("Successfully logged out"));
     }
 }

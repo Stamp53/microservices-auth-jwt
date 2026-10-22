@@ -24,6 +24,7 @@ import java.util.Optional;
 public class ApplicationService {
 
     public static final int MAX_SECTION_CAPACITY = 30;
+    private static final String DEFAULT_STUDENT_PASSWORD = "student123";
 
     private final AdmissionApplicationRepository applicationRepository;
     private final UserService userService;
@@ -126,9 +127,9 @@ public class ApplicationService {
 
         User user = null;
         if (dto.isCreateUserAccount() && dto.getUsername() != null && !dto.getUsername().trim().isEmpty()) {
-            String password = (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) 
-                    ? dto.getPassword() 
-                    : "student123";
+            String password = (dto.getPassword() != null && !dto.getPassword().trim().isEmpty())
+                    ? dto.getPassword()
+                    : DEFAULT_STUDENT_PASSWORD;
             user = userService.registerUser(
                     dto.getUsername().trim(),
                     password,
@@ -208,34 +209,21 @@ public class ApplicationService {
         return applicationRepository.save(app);
     }
 
-    public boolean existsByEmailAndClassAndYear(String email, String appliedClass, int academicYear) {
-        return applicationRepository.existsByEmailAndAppliedClassAndAcademicYear(email, appliedClass, academicYear);
+    /** Returns the user's DB id, or null if user/id are missing. Used to resolve queries. */
+    private Long resolveUserId(User user) {
+        return (user != null && user.getId() != null) ? user.getId() : null;
     }
 
     public Optional<AdmissionApplication> getApplicationForUser(User user) {
-        if (user == null) {
-            return Optional.empty();
-        }
-        if (user.getId() != null) {
-            return applicationRepository.findFirstByUserIdOrderByAppliedDateDesc(user.getId());
-        }
-        if (user.getUsername() != null) {
-            return applicationRepository.findFirstByUserUsernameOrderByAppliedDateDesc(user.getUsername());
-        }
-        return Optional.empty();
+        Long userId = resolveUserId(user);
+        if (userId == null) return Optional.empty();
+        return applicationRepository.findFirstByUserIdOrderByAppliedDateDesc(userId);
     }
 
     public List<AdmissionApplication> getAllApplicationsForUser(User user) {
-        if (user == null) {
-            return List.of();
-        }
-        if (user.getId() != null) {
-            return applicationRepository.findByUserIdOrderByAppliedDateDesc(user.getId());
-        }
-        if (user.getUsername() != null) {
-            return applicationRepository.findByUserUsernameOrderByAppliedDateDesc(user.getUsername());
-        }
-        return List.of();
+        Long userId = resolveUserId(user);
+        if (userId == null) return List.of();
+        return applicationRepository.findByUserIdOrderByAppliedDateDesc(userId);
     }
 
     public Optional<AdmissionApplication> findById(Long id) {

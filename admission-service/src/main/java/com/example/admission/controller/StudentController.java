@@ -4,17 +4,20 @@ import com.example.admission.model.AdmissionApplication;
 import com.example.admission.model.User;
 import com.example.admission.service.ApplicationService;
 import com.example.admission.service.UserService;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("/student")
+@CrossOrigin(origins = "*")
 public class StudentController {
 
     private final ApplicationService applicationService;
@@ -25,26 +28,31 @@ public class StudentController {
         this.userService = userService;
     }
 
+    /**
+     * Returns the logged-in student's profile and their admission application(s).
+     * Spring Security guarantees Authentication is non-null here because
+     * SecurityConfig requires ROLE_STUDENT for all /student/** paths.
+     */
     @GetMapping("/dashboard")
-    public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        if (userDetails == null) {
-            return "redirect:/login";
-        }
-        Optional<User> userOpt = userService.findByUsername(userDetails.getUsername());
+    public ResponseEntity<?> dashboard(Authentication authentication) {
+        String username = authentication.getName();
+
+        Optional<User> userOpt = userService.findByUsername(username);
         if (userOpt.isEmpty()) {
-            return "redirect:/login?logout=true";
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "User not found: " + username));
         }
         User user = userOpt.get();
-        model.addAttribute("user", user);
-        Optional<AdmissionApplication> appOpt = applicationService.getApplicationForUser(user);
-        model.addAttribute("allApplications", applicationService.getAllApplicationsForUser(user));
-        if (appOpt.isPresent()) {
-            AdmissionApplication app = appOpt.get();
-            model.addAttribute("admissionApp", app);
-            model.addAttribute("hasApplication", true);
-        } else {
-            model.addAttribute("hasApplication", false);
-        }
-        return "student/dashboard";
+
+        Optional<AdmissionApplication> latestApp = applicationService.getApplicationForUser(user);
+
+        return ResponseEntity.ok(Map.of(
+                "username", user.getUsername(),
+                "fullName", user.getFullName(),
+                "role", user.getRole(),
+                "hasApplication", latestApp.isPresent(),
+                "admissionApp", latestApp.orElse(null),
+                "allApplications", applicationService.getAllApplicationsForUser(user)
+        ));
     }
 }

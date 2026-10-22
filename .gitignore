@@ -34,3 +34,11 @@ bin/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Frontend dependencies and build artifacts
+node_modules/
+**/node_modules/
+.angular/
+**/.angular/
+dist/
+**/dist/

@@ -1,12 +1,8 @@
 package com.example.admission.config;
 
 import com.example.admission.security.JwtAuthenticationFilter;
-import com.example.admission.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,76 +15,48 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    /**
+     * PasswordEncoder is still needed by UserService to hash passwords
+     * when a student self-registers on the admission portal.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
-
-    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // 1. Disable server-stored sessions completely (Stateless JWT Authentication)
+            // Stateless — no server-side sessions, JWT handles identity
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            // 2. Disable CSRF since auth is purely stateless
+            // No CSRF needed for stateless REST API
             .csrf(csrf -> csrf.disable())
-            // 3. Exception handling: redirect unauthenticated requests to /login
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint((request, response, authException) -> {
-                    if (request.getRequestURI().startsWith("/api/") ||
-                            "XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
-                        response.sendError(401, "Unauthorized");
-                    } else {
-                        response.sendRedirect("/login");
-                    }
+            // Return JSON 401 for unauthenticated requests (not a login redirect)
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, exception) -> {
+                    response.setContentType("application/json");
+                    response.setStatus(401);
+                    response.getWriter().write("{\"error\": \"Unauthorized\"}");
                 })
             )
-            // 4. URL authorization rules
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/",
-                    "/login",
-                    "/register",
-                    "/track",
-                    "/css/**",
-                    "/js/**",
-                    "/images/**",
-                    "/h2-console/**",
-                    "/actuator/**"
-                ).permitAll()
+                .requestMatchers("/register", "/track", "/track/**",
+                                 "/h2-console/**", "/actuator/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/student/**").hasRole("STUDENT")
                 .anyRequest().authenticated()
             )
-            // 5. Allow H2 Console iframe
-            .headers(headers -> headers
-                .frameOptions(frame -> frame.disable())
-            )
-            .authenticationProvider(authenticationProvider())
-            // 6. Stateless JWT authentication filter
+            // Allow H2 console in iframe (dev only)
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+            // Add our simple header-reading filter before Spring's default auth filter
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

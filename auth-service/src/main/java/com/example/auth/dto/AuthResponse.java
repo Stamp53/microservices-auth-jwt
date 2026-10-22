@@ -5,7 +5,7 @@ import com.example.auth.model.Role;
 public class AuthResponse {
 
     private String accessToken;
-    private String refreshToken;
+    private String refreshToken = "";
     private String tokenType = "Bearer";
     private long expiresIn;
     private String username;
@@ -15,9 +15,19 @@ public class AuthResponse {
     public AuthResponse() {
     }
 
+    public AuthResponse(String accessToken, long expiresIn, String username, String email, Role role) {
+        this.accessToken = accessToken;
+        this.refreshToken = "";
+        this.tokenType = "Bearer";
+        this.expiresIn = expiresIn;
+        this.username = username;
+        this.email = email;
+        this.role = role;
+    }
+
     public AuthResponse(String accessToken, String refreshToken, long expiresIn, String username, String email, Role role) {
         this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
+        this.refreshToken = refreshToken != null ? refreshToken : "";
         this.tokenType = "Bearer";
         this.expiresIn = expiresIn;
         this.username = username;

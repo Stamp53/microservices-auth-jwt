@@ -44,30 +44,6 @@ public class DataInitializer implements CommandLineRunner {
                     "Bob Jones",
                     Role.ROLE_STUDENT
             ));
-
-            userRepository.save(new User(
-                    "carol",
-                    passwordEncoder.encode("student123"),
-                    "carol@example.com",
-                    "Carol White",
-                    Role.ROLE_STUDENT
-            ));
-
-            userRepository.save(new User(
-                    "david",
-                    passwordEncoder.encode("student123"),
-                    "david@example.com",
-                    "David Miller",
-                    Role.ROLE_STUDENT
-            ));
-
-            userRepository.save(new User(
-                    "emma",
-                    passwordEncoder.encode("student123"),
-                    "emma@example.com",
-                    "Emma Watson",
-                    Role.ROLE_STUDENT
-            ));
         }
     }
 }
