@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdmissionService } from '../../services/admission.service';
-import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, ApprovalDto, RejectionDto, ReportData } from '../../models';
+import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, ApprovalDto, RejectionDto, ReportData, CLASS_CATEGORIES } from '../../models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -281,11 +281,13 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
               <div class="form-group">
                 <label>Applied Class *</label>
                 <select name="appliedClass" [(ngModel)]="adminRegisterDto.appliedClass" class="form-control">
-                  <option value="Class 10">Class 10</option>
-                  <option value="Class 11 Science">Class 11 Science</option>
-                  <option value="Class 11 Commerce">Class 11 Commerce</option>
-                  <option value="Class 11 Arts">Class 11 Arts</option>
-                  <option value="Class 12 Science">Class 12 Science</option>
+                  @for (cat of classCategories; track cat.category) {
+                    <optgroup [label]="cat.category">
+                      @for (cls of cat.classes; track cls) {
+                        <option [value]="cls">{{ cls }}</option>
+                      }
+                    </optgroup>
+                  }
                 </select>
               </div>
 
@@ -338,11 +340,13 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
                 <div class="form-group">
                   <label>Assigned Class</label>
                   <select name="assignedClass" [(ngModel)]="adminRegisterDto.assignedClass" class="form-control">
-                    <option value="Class 10">Class 10</option>
-                    <option value="Class 11 Science">Class 11 Science</option>
-                    <option value="Class 11 Commerce">Class 11 Commerce</option>
-                    <option value="Class 11 Arts">Class 11 Arts</option>
-                    <option value="Class 12 Science">Class 12 Science</option>
+                    @for (cat of classCategories; track cat.category) {
+                      <optgroup [label]="cat.category">
+                        @for (cls of cat.classes; track cls) {
+                          <option [value]="cls">{{ cls }}</option>
+                        }
+                      </optgroup>
+                    }
                   </select>
                 </div>
 
@@ -427,11 +431,13 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
             <div class="form-group">
               <label>Assigned Class</label>
               <select [(ngModel)]="approvalForm.assignedClass" class="form-control">
-                <option value="Class 10">Class 10</option>
-                <option value="Class 11 Science">Class 11 Science</option>
-                <option value="Class 11 Commerce">Class 11 Commerce</option>
-                <option value="Class 11 Arts">Class 11 Arts</option>
-                <option value="Class 12 Science">Class 12 Science</option>
+                @for (cat of classCategories; track cat.category) {
+                  <optgroup [label]="cat.category">
+                    @for (cls of cat.classes; track cls) {
+                      <option [value]="cls">{{ cls }}</option>
+                    }
+                  </optgroup>
+                }
               </select>
             </div>
 
@@ -806,6 +812,7 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
   `]
 })
 export class AdminDashboardComponent implements OnInit {
+  classCategories = CLASS_CATEGORIES;
   activeView: 'applications' | 'reports' | 'register' = 'applications';
   dashboardStats: AdminDashboardData | null = null;
   applications: AdmissionApplication[] = [];

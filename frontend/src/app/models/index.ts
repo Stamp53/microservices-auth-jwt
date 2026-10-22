@@ -111,3 +111,69 @@ export interface ReportData {
   availableSections: string[];
   totalEnrolled: number;
 }
+
+export interface ClassCategory {
+  category: string;
+  classes: string[];
+}
+
+export const CLASS_CATEGORIES: ClassCategory[] = [
+  {
+    category: 'Primary School (Classes 1 - 5)',
+    classes: [
+      'Class 1',
+      'Class 2',
+      'Class 3',
+      'Class 4',
+      'Class 5'
+    ]
+  },
+  {
+    category: 'Middle School (Classes 6 - 8)',
+    classes: [
+      'Class 6',
+      'Class 7',
+      'Class 8'
+    ]
+  },
+  {
+    category: 'Secondary School (Classes 9 - 10)',
+    classes: [
+      'Class 9',
+      'Class 10'
+    ]
+  },
+  {
+    category: 'Higher Secondary (Class 11)',
+    classes: [
+      'Class 11 Science',
+      'Class 11 Commerce',
+      'Class 11 Arts'
+    ]
+  },
+  {
+    category: 'Higher Secondary (Class 12)',
+    classes: [
+      'Class 12 Science',
+      'Class 12 Commerce',
+      'Class 12 Arts'
+    ]
+  },
+  {
+    category: 'Undergraduate Degree Programs',
+    classes: [
+      'BCA (Bachelor of Computer Applications)',
+      'B.Tech Computer Science',
+      'B.Tech Information Technology',
+      'B.Sc Computer Science',
+      'B.Sc Mathematics',
+      'B.Com Honors',
+      'B.Com General',
+      'BBA (Business Administration)',
+      'BA English Literature'
+    ]
+  }
+];
+
+export const ALL_CLASSES: string[] = CLASS_CATEGORIES.flatMap(c => c.classes);
+

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AdmissionService } from '../../services/admission.service';
 import { AuthService } from '../../services/auth.service';
-import { StudentRegistrationDto } from '../../models';
+import { StudentRegistrationDto, CLASS_CATEGORIES } from '../../models';
 
 @Component({
   selector: 'app-register',
@@ -134,11 +134,13 @@ import { StudentRegistrationDto } from '../../models';
                 <label for="appliedClass">Applying For Class *</label>
                 <select id="appliedClass" name="appliedClass" [(ngModel)]="form.appliedClass" required class="form-control">
                   <option value="" disabled selected>-- Select Class to Apply --</option>
-                  <option value="Class 10">Class 10</option>
-                  <option value="Class 11 Science">Class 11 Science</option>
-                  <option value="Class 11 Commerce">Class 11 Commerce</option>
-                  <option value="Class 11 Arts">Class 11 Arts</option>
-                  <option value="Class 12 Science">Class 12 Science</option>
+                  @for (cat of classCategories; track cat.category) {
+                    <optgroup [label]="cat.category">
+                      @for (cls of cat.classes; track cls) {
+                        <option [value]="cls">{{ cls }}</option>
+                      }
+                    </optgroup>
+                  }
                 </select>
               </div>
 
@@ -365,6 +367,8 @@ import { StudentRegistrationDto } from '../../models';
   `]
 })
 export class RegisterComponent implements OnInit {
+  classCategories = CLASS_CATEGORIES;
+
   form: StudentRegistrationDto = {
     studentName: '',
     fullName: '',
