@@ -44,6 +44,25 @@ export interface StudentRegistrationDto {
   marksPercentage: number;
 }
 
+export interface AdminStudentRegistrationDto {
+  fullName: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  gender: string;
+  address: string;
+  appliedClass: string;
+  previousSchool?: string;
+  marksPercentage: number;
+  createUserAccount: boolean;
+  username?: string;
+  password?: string;
+  initialStatus: 'PENDING' | 'APPROVED';
+  assignedClass?: string;
+  assignedSection?: string;
+  remarks?: string;
+}
+
 export interface ApprovalDto {
   assignedClass: string;
   assignedSection: string;

@@ -6,6 +6,7 @@ import {
   AdminDashboardData,
   StudentDashboardData,
   StudentRegistrationDto,
+  AdminStudentRegistrationDto,
   ApprovalDto,
   RejectionDto,
   ReportData
@@ -72,6 +73,11 @@ export class AdmissionService {
       `${this.BASE_URL}/admin/applications/${id}/reject`,
       rejectionDto
     );
+  }
+
+  // Admin: Directly register student & create application
+  adminRegisterStudent(dto: AdminStudentRegistrationDto): Observable<AdmissionApplication> {
+    return this.http.post<AdmissionApplication>(`${this.BASE_URL}/admin/register-student`, dto);
   }
 
   // Admin: Class & section reports

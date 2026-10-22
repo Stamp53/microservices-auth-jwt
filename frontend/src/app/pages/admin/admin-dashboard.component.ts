@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdmissionService } from '../../services/admission.service';
-import { AdmissionApplication, AdminDashboardData, ApprovalDto, RejectionDto, ReportData } from '../../models';
+import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, ApprovalDto, RejectionDto, ReportData } from '../../models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -29,6 +29,13 @@ import { AdmissionApplication, AdminDashboardData, ApprovalDto, RejectionDto, Re
             [class.active]="activeView === 'reports'"
           >
             📊 Class Reports
+          </button>
+          <button
+            (click)="activeView = 'register'"
+            class="toggle-btn"
+            [class.active]="activeView === 'register'"
+          >
+            ➕ Register Admission
           </button>
         </div>
       </div>
@@ -200,6 +207,212 @@ import { AdmissionApplication, AdminDashboardData, ApprovalDto, RejectionDto, Re
               </table>
             </div>
           }
+        </div>
+      }
+
+      <!-- VIEW 3: Direct Student Admission Registration -->
+      @if (activeView === 'register') {
+        <div class="card form-card">
+          <div class="card-header">
+            <h3>Direct Student Admission</h3>
+            <p>Directly register a student application and assign class and section</p>
+          </div>
+
+          <form (ngSubmit)="submitAdminRegister()" #regForm="ngForm">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Full Name *</label>
+                <input
+                  type="text"
+                  name="fullName"
+                  [(ngModel)]="adminRegisterDto.fullName"
+                  required
+                  placeholder="e.g. John Doe"
+                  class="form-control"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Email Address *</label>
+                <input
+                  type="email"
+                  name="email"
+                  [(ngModel)]="adminRegisterDto.email"
+                  required
+                  placeholder="e.g. john@example.com"
+                  class="form-control"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Mobile Number (10 digits) *</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  [(ngModel)]="adminRegisterDto.phone"
+                  required
+                  pattern="[0-9]{10}"
+                  placeholder="e.g. 9876543210"
+                  class="form-control"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Date of Birth *</label>
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  [(ngModel)]="adminRegisterDto.dateOfBirth"
+                  required
+                  class="form-control"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Gender *</label>
+                <select name="gender" [(ngModel)]="adminRegisterDto.gender" class="form-control">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Applied Class *</label>
+                <select name="appliedClass" [(ngModel)]="adminRegisterDto.appliedClass" class="form-control">
+                  <option value="Class 10">Class 10</option>
+                  <option value="Class 11 Science">Class 11 Science</option>
+                  <option value="Class 11 Commerce">Class 11 Commerce</option>
+                  <option value="Class 11 Arts">Class 11 Arts</option>
+                  <option value="Class 12 Science">Class 12 Science</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Previous School</label>
+                <input
+                  type="text"
+                  name="previousSchool"
+                  [(ngModel)]="adminRegisterDto.previousSchool"
+                  placeholder="e.g. St. Xavier's High School"
+                  class="form-control"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Marks Percentage (%) *</label>
+                <input
+                  type="number"
+                  name="marksPercentage"
+                  [(ngModel)]="adminRegisterDto.marksPercentage"
+                  min="0"
+                  max="100"
+                  required
+                  placeholder="e.g. 85.5"
+                  class="form-control"
+                />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Residential Address *</label>
+                <textarea
+                  name="address"
+                  [(ngModel)]="adminRegisterDto.address"
+                  required
+                  rows="2"
+                  placeholder="Enter full address"
+                  class="form-control"
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Initial Status *</label>
+                <select name="initialStatus" [(ngModel)]="adminRegisterDto.initialStatus" class="form-control">
+                  <option value="PENDING">PENDING (Needs manual review later)</option>
+                  <option value="APPROVED">APPROVED (Immediate admission & enrollment)</option>
+                </select>
+              </div>
+
+              @if (adminRegisterDto.initialStatus === 'APPROVED') {
+                <div class="form-group">
+                  <label>Assigned Class</label>
+                  <select name="assignedClass" [(ngModel)]="adminRegisterDto.assignedClass" class="form-control">
+                    <option value="Class 10">Class 10</option>
+                    <option value="Class 11 Science">Class 11 Science</option>
+                    <option value="Class 11 Commerce">Class 11 Commerce</option>
+                    <option value="Class 11 Arts">Class 11 Arts</option>
+                    <option value="Class 12 Science">Class 12 Science</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Assigned Section</label>
+                  <select name="assignedSection" [(ngModel)]="adminRegisterDto.assignedSection" class="form-control">
+                    <option value="AUTO">AUTO (Automatic allocation based on capacity)</option>
+                    <option value="Section A">Section A</option>
+                    <option value="Section B">Section B</option>
+                    <option value="Section C">Section C</option>
+                  </select>
+                </div>
+              }
+
+              <div class="form-group full-width">
+                <label>Remarks</label>
+                <input
+                  type="text"
+                  name="remarks"
+                  [(ngModel)]="adminRegisterDto.remarks"
+                  placeholder="e.g. Registered directly by administration"
+                  class="form-control"
+                />
+              </div>
+
+              <div class="form-group full-width checkbox-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    name="createUserAccount"
+                    [(ngModel)]="adminRegisterDto.createUserAccount"
+                  />
+                  <span>Create a student login account</span>
+                </label>
+              </div>
+
+              @if (adminRegisterDto.createUserAccount) {
+                <div class="form-group">
+                  <label>Username (optional - auto-generated if blank)</label>
+                  <input
+                    type="text"
+                    name="username"
+                    [(ngModel)]="adminRegisterDto.username"
+                    placeholder="e.g. john_doe"
+                    class="form-control"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Password (optional - default: student123)</label>
+                  <input
+                    type="password"
+                    name="password"
+                    [(ngModel)]="adminRegisterDto.password"
+                    placeholder="Leave blank for student123"
+                    class="form-control"
+                  />
+                </div>
+              }
+            </div>
+
+            <div class="form-actions">
+              <button
+                type="submit"
+                [disabled]="registerSubmitting || !regForm.form.valid"
+                class="btn btn-primary"
+              >
+                {{ registerSubmitting ? 'Registering...' : 'Submit Admission Registration' }}
+              </button>
+            </div>
+          </form>
         </div>
       }
 
@@ -539,14 +752,67 @@ import { AdmissionApplication, AdminDashboardData, ApprovalDto, RejectionDto, Re
     }
     .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
     .alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+    .form-card {
+      padding: 1.75rem;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    .form-card .card-header h3 {
+      margin: 0 0 0.35rem 0;
+      font-size: 1.15rem;
+      color: #0f172a;
+    }
+    .form-card .card-header p {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.25rem;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .checkbox-group {
+      margin-top: 0.5rem;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.925rem;
+      font-weight: 500;
+      color: #1e293b;
+      cursor: pointer;
+    }
+    .checkbox-label input[type="checkbox"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      accent-color: #2563eb;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #f1f5f9;
+    }
   `]
 })
 export class AdminDashboardComponent implements OnInit {
-  activeView: 'applications' | 'reports' = 'applications';
+  activeView: 'applications' | 'reports' | 'register' = 'applications';
   dashboardStats: AdminDashboardData | null = null;
   applications: AdmissionApplication[] = [];
   currentStatus = 'ALL';
   loading = false;
+
+  adminRegisterDto: AdminStudentRegistrationDto = this.getInitialAdminRegisterDto();
+  registerSubmitting = false;
 
   reportData: ReportData | null = null;
   reportClass = '';
@@ -644,6 +910,45 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: (err) => {
         this.showAlert(err.error?.error || 'Failed to reject application', 'error');
+      }
+    });
+  }
+
+  getInitialAdminRegisterDto(): AdminStudentRegistrationDto {
+    return {
+      fullName: '',
+      email: '',
+      phone: '',
+      dateOfBirth: '',
+      gender: 'Male',
+      address: '',
+      appliedClass: 'Class 11 Science',
+      previousSchool: '',
+      marksPercentage: 80,
+      createUserAccount: true,
+      username: '',
+      password: '',
+      initialStatus: 'PENDING',
+      assignedClass: 'Class 11 Science',
+      assignedSection: 'AUTO',
+      remarks: 'Registered by Administration'
+    };
+  }
+
+  submitAdminRegister(): void {
+    this.registerSubmitting = true;
+    this.admissionService.adminRegisterStudent(this.adminRegisterDto).subscribe({
+      next: (created) => {
+        this.registerSubmitting = false;
+        this.showAlert(`Student admission registered successfully! Application Number: ${created.applicationNumber}`, 'success');
+        this.adminRegisterDto = this.getInitialAdminRegisterDto();
+        this.loadStats();
+        this.loadApplications();
+        this.activeView = 'applications';
+      },
+      error: (err) => {
+        this.registerSubmitting = false;
+        this.showAlert(err?.error?.error || 'Registration failed. Please check inputs.', 'error');
       }
     });
   }
