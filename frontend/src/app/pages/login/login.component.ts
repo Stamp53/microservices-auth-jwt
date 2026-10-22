@@ -55,13 +55,10 @@ import { AuthService } from '../../services/auth.service';
         </form>
 
         <div class="quick-credentials">
-          <p class="quick-title">Quick Demo Logins:</p>
+          <p class="quick-title">Quick Demo Login:</p>
           <div class="quick-buttons">
             <button type="button" (click)="fillAdmin()" class="btn-chip admin-chip">
-              Admin: admin / admin123
-            </button>
-            <button type="button" (click)="fillStudent()" class="btn-chip student-chip">
-              Student: alice / student123
+              Admin Login: admin / admin123
             </button>
           </div>
         </div>

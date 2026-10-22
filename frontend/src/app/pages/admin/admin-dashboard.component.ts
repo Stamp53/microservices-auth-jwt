@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdmissionService } from '../../services/admission.service';
-import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, ApprovalDto, RejectionDto, ReportData, CLASS_CATEGORIES } from '../../models';
+import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, ApprovalDto, RejectionDto, ReportData, ALL_CLASSES } from '../../models';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -281,12 +281,8 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
               <div class="form-group">
                 <label>Applied Class *</label>
                 <select name="appliedClass" [(ngModel)]="adminRegisterDto.appliedClass" class="form-control">
-                  @for (cat of classCategories; track cat.category) {
-                    <optgroup [label]="cat.category">
-                      @for (cls of cat.classes; track cls) {
-                        <option [value]="cls">{{ cls }}</option>
-                      }
-                    </optgroup>
+                  @for (cls of classes; track cls) {
+                    <option [value]="cls">{{ cls }}</option>
                   }
                 </select>
               </div>
@@ -340,12 +336,8 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
                 <div class="form-group">
                   <label>Assigned Class</label>
                   <select name="assignedClass" [(ngModel)]="adminRegisterDto.assignedClass" class="form-control">
-                    @for (cat of classCategories; track cat.category) {
-                      <optgroup [label]="cat.category">
-                        @for (cls of cat.classes; track cls) {
-                          <option [value]="cls">{{ cls }}</option>
-                        }
-                      </optgroup>
+                    @for (cls of classes; track cls) {
+                      <option [value]="cls">{{ cls }}</option>
                     }
                   </select>
                 </div>
@@ -431,12 +423,8 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
             <div class="form-group">
               <label>Assigned Class</label>
               <select [(ngModel)]="approvalForm.assignedClass" class="form-control">
-                @for (cat of classCategories; track cat.category) {
-                  <optgroup [label]="cat.category">
-                    @for (cls of cat.classes; track cls) {
-                      <option [value]="cls">{{ cls }}</option>
-                    }
-                  </optgroup>
+                @for (cls of classes; track cls) {
+                  <option [value]="cls">{{ cls }}</option>
                 }
               </select>
             </div>
@@ -812,7 +800,7 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
   `]
 })
 export class AdminDashboardComponent implements OnInit {
-  classCategories = CLASS_CATEGORIES;
+  classes = ALL_CLASSES;
   activeView: 'applications' | 'reports' | 'register' = 'applications';
   dashboardStats: AdminDashboardData | null = null;
   applications: AdmissionApplication[] = [];
@@ -831,7 +819,7 @@ export class AdminDashboardComponent implements OnInit {
   alertType: 'success' | 'error' = 'success';
 
   selectedAppForApprove: AdmissionApplication | null = null;
-  approvalForm: ApprovalDto = { assignedClass: 'Class 11 Science', assignedSection: 'AUTO', remarks: 'Admitted on merit' };
+  approvalForm: ApprovalDto = { assignedClass: 'Class 1', assignedSection: 'AUTO', remarks: 'Admitted on merit' };
 
   selectedAppForReject: AdmissionApplication | null = null;
   rejectionForm: RejectionDto = { remarks: 'Cut-off eligibility criteria not satisfied.' };
@@ -930,14 +918,14 @@ export class AdminDashboardComponent implements OnInit {
       dateOfBirth: '',
       gender: '',
       address: '',
-      appliedClass: 'Class 11 Science',
+      appliedClass: 'Class 1',
       previousSchool: '',
       marksPercentage: 80,
       createUserAccount: true,
       username: '',
       password: '',
       initialStatus: 'PENDING',
-      assignedClass: 'Class 11 Science',
+      assignedClass: 'Class 1',
       assignedSection: 'AUTO',
       remarks: 'Registered by Administration'
     };
