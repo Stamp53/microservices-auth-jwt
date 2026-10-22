@@ -15,25 +15,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
-/**
- * Reads the trusted identity headers that the API Gateway injects after validating the JWT.
- *
- * Flow:
- *   Browser → API Gateway (validates JWT, adds X-Auth-Username + X-Auth-Role)
- *           → admission-service (this filter reads those headers and builds the SecurityContext)
- *
- * This service does NOT validate JWTs itself. That is the gateway's responsibility.
- */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         String username = request.getHeader("X-Auth-Username");
-        String role     = request.getHeader("X-Auth-Role");
+        String role = request.getHeader("X-Auth-Role");
 
         // If the gateway forwarded a valid identity, build the Spring Security context
         if (StringUtils.hasText(username) && StringUtils.hasText(role)) {

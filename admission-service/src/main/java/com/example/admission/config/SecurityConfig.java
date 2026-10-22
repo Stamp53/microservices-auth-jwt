@@ -21,10 +21,6 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    /**
-     * PasswordEncoder is still needed by UserService to hash passwords
-     * when a student self-registers on the admission portal.
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -33,31 +29,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Stateless — no server-side sessions, JWT handles identity
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            // No CSRF needed for stateless REST API
-            .csrf(csrf -> csrf.disable())
-            // Return JSON 401 for unauthenticated requests (not a login redirect)
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((request, response, exception) -> {
-                    response.setContentType("application/json");
-                    response.setStatus(401);
-                    response.getWriter().write("{\"error\": \"Unauthorized\"}");
-                })
-            )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/register", "/track", "/track/**",
-                                 "/h2-console/**", "/actuator/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/student/**").hasRole("STUDENT")
-                .anyRequest().authenticated()
-            )
-            // Allow H2 console in iframe (dev only)
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-            // Add our simple header-reading filter before Spring's default auth filter
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // Stateless — no server-side sessions, JWT handles identity
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // No CSRF needed for stateless REST API
+                .csrf(csrf -> csrf.disable())
+                // Return JSON 401 for unauthenticated requests (not a login redirect)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, exception) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(401);
+                            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                        }))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/register", "/track", "/track/**",
+                                "/h2-console/**", "/actuator/**")
+                        .permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/student/**").hasRole("STUDENT")
+                        .anyRequest().authenticated())
+                // Allow H2 console in iframe (dev only)
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+                // Add our simple header-reading filter before Spring's default auth filter
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
