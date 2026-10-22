@@ -937,7 +937,12 @@ export class AdminDashboardComponent implements OnInit {
 
   submitAdminRegister(): void {
     this.registerSubmitting = true;
-    this.admissionService.adminRegisterStudent(this.adminRegisterDto).subscribe({
+    const payload = {
+      ...this.adminRegisterDto,
+      fullName: this.adminRegisterDto.fullName || (this.adminRegisterDto as any).studentName,
+      studentName: this.adminRegisterDto.fullName || (this.adminRegisterDto as any).studentName
+    };
+    this.admissionService.adminRegisterStudent(payload as any).subscribe({
       next: (created) => {
         this.registerSubmitting = false;
         this.showAlert(`Student admission registered successfully! Application Number: ${created.applicationNumber}`, 'success');
@@ -948,7 +953,8 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: (err) => {
         this.registerSubmitting = false;
-        this.showAlert(err?.error?.error || 'Registration failed. Please check inputs.', 'error');
+        const msg = err?.error?.error || err?.error?.message || 'Registration failed. Please check inputs.';
+        this.showAlert(msg, 'error');
       }
     });
   }

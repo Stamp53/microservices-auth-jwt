@@ -33,7 +33,8 @@ export interface AdmissionApplication {
 export interface StudentRegistrationDto {
   username: string;
   password?: string;
-  studentName: string;
+  studentName?: string;
+  fullName?: string;
   email: string;
   phone: string;
   dateOfBirth: string;
@@ -46,6 +47,7 @@ export interface StudentRegistrationDto {
 
 export interface AdminStudentRegistrationDto {
   fullName: string;
+  studentName?: string;
   email: string;
   phone: string;
   dateOfBirth: string;

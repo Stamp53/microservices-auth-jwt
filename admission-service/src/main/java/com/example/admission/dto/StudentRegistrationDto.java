@@ -1,5 +1,6 @@
 package com.example.admission.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
@@ -15,6 +16,7 @@ public class StudentRegistrationDto {
     private String password;
 
     @NotBlank(message = "Full name is required")
+    @JsonAlias({"studentName", "fullName"})
     private String fullName;
 
     @NotBlank(message = "Email is required")
@@ -71,6 +73,14 @@ public class StudentRegistrationDto {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getStudentName() {
+        return fullName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.fullName = studentName;
     }
 
     public String getEmail() {

@@ -360,6 +360,7 @@ export class RegisterComponent {
     username: '',
     password: '',
     studentName: '',
+    fullName: '',
     email: '',
     phone: '',
     dateOfBirth: '',
@@ -380,14 +381,20 @@ export class RegisterComponent {
     this.loading = true;
     this.errorMessage = '';
 
-    this.admissionService.registerStudent(this.form).subscribe({
+    const payload = {
+      ...this.form,
+      fullName: this.form.studentName || this.form.fullName,
+      studentName: this.form.studentName || this.form.fullName
+    };
+
+    this.admissionService.registerStudent(payload as any).subscribe({
       next: (res) => {
         this.loading = false;
         this.successData = res;
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.error || err.error?.message || 'Failed to submit application.';
+        this.errorMessage = err?.error?.error || err?.error?.message || 'Failed to submit application. Please check your inputs.';
       }
     });
   }

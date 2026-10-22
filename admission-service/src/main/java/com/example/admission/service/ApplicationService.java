@@ -126,12 +126,24 @@ public class ApplicationService {
         }
 
         User user = null;
-        if (dto.isCreateUserAccount() && dto.getUsername() != null && !dto.getUsername().trim().isEmpty()) {
+        if (dto.isCreateUserAccount()) {
+            String uname = (dto.getUsername() != null && !dto.getUsername().trim().isEmpty())
+                    ? dto.getUsername().trim().toLowerCase()
+                    : (dto.getEmail() != null && dto.getEmail().contains("@")
+                            ? dto.getEmail().substring(0, dto.getEmail().indexOf('@')).toLowerCase().replaceAll("[^a-zA-Z0-9]", "")
+                            : "student" + (System.currentTimeMillis() % 10000));
+
+            if (dto.getUsername() == null || dto.getUsername().trim().isEmpty()) {
+                if (userService.usernameExists(uname)) {
+                    uname = uname + (System.currentTimeMillis() % 1000);
+                }
+            }
+
             String password = (dto.getPassword() != null && !dto.getPassword().trim().isEmpty())
                     ? dto.getPassword()
                     : DEFAULT_STUDENT_PASSWORD;
             user = userService.registerUser(
-                    dto.getUsername().trim(),
+                    uname,
                     password,
                     dto.getFullName().trim(),
                     Role.ROLE_STUDENT
