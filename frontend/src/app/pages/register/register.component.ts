@@ -107,6 +107,7 @@ import { StudentRegistrationDto } from '../../models';
               <div class="form-group">
                 <label for="gender">Gender *</label>
                 <select id="gender" name="gender" [(ngModel)]="form.gender" required class="form-control">
+                  <option value="" disabled selected>-- Select Gender --</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -132,6 +133,7 @@ import { StudentRegistrationDto } from '../../models';
               <div class="form-group">
                 <label for="appliedClass">Applying For Class *</label>
                 <select id="appliedClass" name="appliedClass" [(ngModel)]="form.appliedClass" required class="form-control">
+                  <option value="" disabled selected>-- Select Class to Apply --</option>
                   <option value="Class 10">Class 10</option>
                   <option value="Class 11 Science">Class 11 Science</option>
                   <option value="Class 11 Commerce">Class 11 Commerce</option>
@@ -368,12 +370,12 @@ export class RegisterComponent implements OnInit {
     fullName: '',
     email: '',
     phone: '',
-    dateOfBirth: '2006-01-15',
-    gender: 'Male',
+    dateOfBirth: '',
+    gender: '',
     address: '',
-    appliedClass: 'Class 11 Science',
+    appliedClass: '',
     previousSchool: '',
-    marksPercentage: 80
+    marksPercentage: null as any
   };
 
   loading = false;
@@ -395,6 +397,15 @@ export class RegisterComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (!this.form.gender) {
+      this.errorMessage = 'Please select a gender.';
+      return;
+    }
+    if (!this.form.appliedClass) {
+      this.errorMessage = 'Please select the class you are applying for.';
+      return;
+    }
+
     this.loading = true;
     this.errorMessage = '';
 

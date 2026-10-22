@@ -271,6 +271,7 @@ import { AdmissionApplication, AdminDashboardData, AdminStudentRegistrationDto, 
               <div class="form-group">
                 <label>Gender *</label>
                 <select name="gender" [(ngModel)]="adminRegisterDto.gender" class="form-control">
+                  <option value="" disabled selected>-- Select Gender --</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -919,8 +920,8 @@ export class AdminDashboardComponent implements OnInit {
       fullName: '',
       email: '',
       phone: '',
-      dateOfBirth: '2006-01-15',
-      gender: 'Male',
+      dateOfBirth: '',
+      gender: '',
       address: '',
       appliedClass: 'Class 11 Science',
       previousSchool: '',
