@@ -37,21 +37,26 @@ public class StudentController {
         String username = authentication.getName();
 
         Optional<User> userOpt = userService.findByUsername(username);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "User not found: " + username));
-        }
-        User user = userOpt.get();
+        User user = userOpt.orElse(null);
 
-        Optional<AdmissionApplication> latestApp = applicationService.getApplicationForUser(user);
+        Optional<AdmissionApplication> latestApp = applicationService.getApplicationForUsernameOrUser(username, user);
+        java.util.List<AdmissionApplication> allApps = applicationService.getAllApplicationsForUsernameOrUser(username, user);
+
+        String fullName = (user != null && user.getFullName() != null)
+                ? user.getFullName()
+                : latestApp.map(AdmissionApplication::getStudentName).orElse(username);
+
+        String role = (user != null && user.getRole() != null)
+                ? user.getRole().name()
+                : "ROLE_STUDENT";
 
         return ResponseEntity.ok(Map.of(
-                "username", user.getUsername(),
-                "fullName", user.getFullName(),
-                "role", user.getRole(),
+                "username", username,
+                "fullName", fullName,
+                "role", role,
                 "hasApplication", latestApp.isPresent(),
                 "admissionApp", latestApp.orElse(null),
-                "allApplications", applicationService.getAllApplicationsForUser(user)
+                "allApplications", allApps
         ));
     }
 }

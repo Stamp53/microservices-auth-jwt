@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AdmissionService } from '../../services/admission.service';
+import { AuthService } from '../../services/auth.service';
 import { StudentRegistrationDto } from '../../models';
 
 @Component({
@@ -13,9 +14,16 @@ import { StudentRegistrationDto } from '../../models';
     <div class="page-container">
       <div class="card form-card">
         <div class="header">
-          <h2>Student Online Admission</h2>
-          <p>Submit your application for academic admission</p>
+          <div class="academic-badge">Academic Admissions</div>
+          <h2>Academic Admission Application</h2>
+          <p>Submit your academic credentials and school admission application form</p>
         </div>
+
+        @if (!authService.isLoggedIn()) {
+          <div class="account-tip">
+            <span>💡 Just want to create a portal account? <a routerLink="/signup">Click here to Sign Up</a> instead. Fill out this form only when applying for school admission.</span>
+          </div>
+        }
 
         @if (successData) {
           <div class="success-box">
@@ -43,36 +51,7 @@ import { StudentRegistrationDto } from '../../models';
           }
 
           <form (ngSubmit)="onSubmit()" class="application-form">
-            <h4 class="section-title">1. Account Information</h4>
-            <div class="grid-2">
-              <div class="form-group">
-                <label for="username">Username *</label>
-                <input
-                  id="username"
-                  type="text"
-                  name="username"
-                  [(ngModel)]="form.username"
-                  required
-                  placeholder="e.g. jdoe24"
-                  class="form-control"
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="password">Password *</label>
-                <input
-                  id="password"
-                  type="password"
-                  name="password"
-                  [(ngModel)]="form.password"
-                  required
-                  placeholder="Min 6 characters"
-                  class="form-control"
-                />
-              </div>
-            </div>
-
-            <h4 class="section-title">2. Personal Details</h4>
+            <h4 class="section-title">1. Personal & Contact Details</h4>
             <div class="grid-2">
               <div class="form-group">
                 <label for="studentName">Student Full Name *</label>
@@ -148,7 +127,7 @@ import { StudentRegistrationDto } from '../../models';
               </div>
             </div>
 
-            <h4 class="section-title">3. Academic Admission Details</h4>
+            <h4 class="section-title">2. Academic Admission Details</h4>
             <div class="grid-2">
               <div class="form-group">
                 <label for="appliedClass">Applying For Class *</label>
@@ -218,6 +197,34 @@ import { StudentRegistrationDto } from '../../models';
       margin-bottom: 2rem;
       border-bottom: 1px solid #f1f5f9;
       padding-bottom: 1.25rem;
+    }
+    .academic-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #2563eb;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      margin-bottom: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .account-tip {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #3b82f6;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: #334155;
+      margin-bottom: 1.5rem;
+    }
+    .account-tip a {
+      color: #2563eb;
+      font-weight: 600;
+      text-decoration: underline;
     }
     .header h2 {
       margin: 0 0 0.4rem 0;
@@ -355,10 +362,8 @@ import { StudentRegistrationDto } from '../../models';
     }
   `]
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   form: StudentRegistrationDto = {
-    username: '',
-    password: '',
     studentName: '',
     fullName: '',
     email: '',
@@ -375,7 +380,19 @@ export class RegisterComponent {
   errorMessage = '';
   successData: { success: boolean; applicationNumber: string } | null = null;
 
-  constructor(private admissionService: AdmissionService) {}
+  constructor(
+    private admissionService: AdmissionService,
+    public authService: AuthService
+  ) {}
+
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      const user = this.authService.currentUser();
+      if (user) {
+        this.form.email = user.email || '';
+      }
+    }
+  }
 
   onSubmit(): void {
     this.loading = true;
@@ -384,7 +401,8 @@ export class RegisterComponent {
     const payload = {
       ...this.form,
       fullName: this.form.studentName || this.form.fullName,
-      studentName: this.form.studentName || this.form.fullName
+      studentName: this.form.studentName || this.form.fullName,
+      username: this.authService.currentUser()?.username || undefined
     };
 
     this.admissionService.registerStudent(payload as any).subscribe({

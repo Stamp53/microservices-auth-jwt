@@ -7,6 +7,14 @@ export interface AuthResponse {
   role: string;
 }
 
+export interface SignupRequest {
+  fullName: string;
+  username: string;
+  email: string;
+  password: string;
+  role?: string;
+}
+
 export interface AdmissionApplication {
   id?: number;
   applicationNumber?: string;
@@ -31,7 +39,7 @@ export interface AdmissionApplication {
 }
 
 export interface StudentRegistrationDto {
-  username: string;
+  username?: string;
   password?: string;
   studentName?: string;
   fullName?: string;

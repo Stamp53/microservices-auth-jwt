@@ -18,10 +18,11 @@ import { AuthService } from '../../services/auth.service';
         <nav class="nav-links">
           <a routerLink="/track" routerLinkActive="active" class="nav-item">Track Application</a>
 
-          <!-- Public link -->
+          <!-- Public links -->
           @if (!authService.isLoggedIn()) {
-            <a routerLink="/register" routerLinkActive="active" class="nav-item">Apply Online</a>
-            <a routerLink="/login" routerLinkActive="active" class="btn-login">Sign In</a>
+            <a routerLink="/register" routerLinkActive="active" class="nav-item">Apply for Admission</a>
+            <a routerLink="/login" routerLinkActive="active" class="nav-item nav-signin">Sign In</a>
+            <a routerLink="/signup" routerLinkActive="active" class="btn-signup">Sign Up</a>
           }
 
           <!-- Admin links -->
@@ -32,6 +33,7 @@ import { AuthService } from '../../services/auth.service';
           <!-- Student links -->
           @if (authService.isLoggedIn() && authService.isStudent()) {
             <a routerLink="/student" routerLinkActive="active" class="nav-item">My Dashboard</a>
+            <a routerLink="/register" routerLinkActive="active" class="nav-item">Apply for Admission</a>
           }
 
           <!-- User session badge & logout -->
@@ -96,17 +98,26 @@ import { AuthService } from '../../services/auth.service';
     .nav-item:hover, .nav-item.active {
       color: #2563eb;
     }
-    .btn-login {
+    .nav-signin {
+      padding: 0.45rem 0.85rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+    }
+    .nav-signin:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+    .btn-signup {
       text-decoration: none;
       background: #2563eb;
       color: #ffffff;
-      padding: 0.5rem 1.1rem;
+      padding: 0.5rem 1.15rem;
       border-radius: 6px;
       font-weight: 600;
       font-size: 0.9rem;
       transition: background 0.15s;
     }
-    .btn-login:hover {
+    .btn-signup:hover {
       background: #1d4ed8;
     }
     .user-badge {

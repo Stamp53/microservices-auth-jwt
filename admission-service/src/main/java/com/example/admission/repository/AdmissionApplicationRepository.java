@@ -20,9 +20,13 @@ public interface AdmissionApplicationRepository extends JpaRepository<AdmissionA
 
     Optional<AdmissionApplication> findFirstByUserUsernameOrderByAppliedDateDesc(String username);
 
+    Optional<AdmissionApplication> findFirstByEmailOrderByAppliedDateDesc(String email);
+
     List<AdmissionApplication> findByUserIdOrderByAppliedDateDesc(Long userId);
 
     List<AdmissionApplication> findByUserUsernameOrderByAppliedDateDesc(String username);
+
+    List<AdmissionApplication> findByEmailOrderByAppliedDateDesc(String email);
 
     boolean existsByUserIdAndAcademicYear(Long userId, Integer academicYear);
 

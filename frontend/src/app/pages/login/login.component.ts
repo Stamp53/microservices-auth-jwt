@@ -67,7 +67,10 @@ import { AuthService } from '../../services/auth.service';
         </div>
 
         <div class="card-footer">
-          <p>Need to apply for admission? <a routerLink="/register">Apply online here</a></p>
+          <p class="signup-prompt">
+            Don't have an account? <a routerLink="/signup" class="link-signup">Create an Account (Sign Up)</a>
+          </p>
+          <p>Looking to submit an admission form? <a routerLink="/register">Apply for Admission</a></p>
           <p><a routerLink="/track">Track existing application</a></p>
         </div>
       </div>

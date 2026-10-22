@@ -91,12 +91,21 @@ public class ApplicationService {
             throw new IllegalArgumentException("An application for " + dto.getAppliedClass() + " in academic year " + currentYear + " with email " + dto.getEmail() + " already exists.");
         }
 
-        User user = userService.registerUser(
-                dto.getUsername(),
-                dto.getPassword(),
-                dto.getFullName(),
-                Role.ROLE_STUDENT
-        );
+        String resolvedUsername = (dto.getUsername() != null && !dto.getUsername().trim().isEmpty())
+                ? dto.getUsername().trim()
+                : (dto.getEmail() != null && dto.getEmail().contains("@")
+                        ? dto.getEmail().split("@")[0].toLowerCase().replaceAll("[^a-zA-Z0-9]", "")
+                        : null);
+
+        User user = null;
+        if (resolvedUsername != null) {
+            user = userService.getOrCreateUser(
+                    resolvedUsername,
+                    dto.getPassword(),
+                    dto.getFullName(),
+                    Role.ROLE_STUDENT
+            );
+        }
 
         AdmissionApplication app = new AdmissionApplication();
         app.setApplicationNumber(generateNextApplicationNumber());
@@ -236,6 +245,29 @@ public class ApplicationService {
         Long userId = resolveUserId(user);
         if (userId == null) return List.of();
         return applicationRepository.findByUserIdOrderByAppliedDateDesc(userId);
+    }
+
+    public Optional<AdmissionApplication> getApplicationForUsernameOrUser(String username, User user) {
+        if (user != null && user.getId() != null) {
+            Optional<AdmissionApplication> app = applicationRepository.findFirstByUserIdOrderByAppliedDateDesc(user.getId());
+            if (app.isPresent()) return app;
+        }
+        if (username != null && !username.isBlank()) {
+            Optional<AdmissionApplication> app = applicationRepository.findFirstByUserUsernameOrderByAppliedDateDesc(username);
+            if (app.isPresent()) return app;
+        }
+        return Optional.empty();
+    }
+
+    public List<AdmissionApplication> getAllApplicationsForUsernameOrUser(String username, User user) {
+        if (user != null && user.getId() != null) {
+            List<AdmissionApplication> apps = applicationRepository.findByUserIdOrderByAppliedDateDesc(user.getId());
+            if (!apps.isEmpty()) return apps;
+        }
+        if (username != null && !username.isBlank()) {
+            return applicationRepository.findByUserUsernameOrderByAppliedDateDesc(username);
+        }
+        return List.of();
     }
 
     public Optional<AdmissionApplication> findById(Long id) {

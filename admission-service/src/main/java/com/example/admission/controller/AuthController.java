@@ -25,12 +25,16 @@ public class AuthController {
      * Creates a local user account + an admission application in one step.
      */
     @PostMapping("/register")
-    public ResponseEntity<?> handleRegistration(@Valid @RequestBody StudentRegistrationDto dto) {
+    public ResponseEntity<?> handleRegistration(@Valid @RequestBody StudentRegistrationDto dto,
+                                                org.springframework.security.core.Authentication authentication) {
         try {
+            if ((dto.getUsername() == null || dto.getUsername().isBlank()) && authentication != null && authentication.isAuthenticated()) {
+                dto.setUsername(authentication.getName());
+            }
             AdmissionApplication createdApp = applicationService.registerStudentApplication(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "success", true,
-                    "message", "Registration successful!",
+                    "message", "Application submitted successfully!",
                     "applicationNumber", createdApp.getApplicationNumber()
             ));
         } catch (IllegalArgumentException ex) {

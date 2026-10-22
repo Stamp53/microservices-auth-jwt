@@ -41,4 +41,20 @@ public class UserService {
         );
         return userRepository.save(user);
     }
+
+    @Transactional
+    public User getOrCreateUser(String username, String rawPassword, String fullName, Role role) {
+        Optional<User> existing = userRepository.findByUsername(username);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        String password = (rawPassword != null && !rawPassword.isBlank()) ? rawPassword : "student123";
+        User user = new User(
+                username,
+                passwordEncoder.encode(password),
+                fullName,
+                role
+        );
+        return userRepository.save(user);
+    }
 }

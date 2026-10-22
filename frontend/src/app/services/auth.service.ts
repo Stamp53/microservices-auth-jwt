@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { AuthResponse } from '../models';
+import { AuthResponse, SignupRequest } from '../models';
 
 export interface UserSession {
   username: string;
@@ -23,6 +23,21 @@ export class AuthService {
 
   login(credentials: { username: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.AUTH_URL}/login`, credentials).pipe(
+      tap(response => {
+        localStorage.setItem('access_token', response.accessToken);
+        const session: UserSession = {
+          username: response.username,
+          email: response.email,
+          role: response.role
+        };
+        localStorage.setItem('user_session', JSON.stringify(session));
+        this.currentUser.set(session);
+      })
+    );
+  }
+
+  signup(data: SignupRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.AUTH_URL}/register`, data).pipe(
       tap(response => {
         localStorage.setItem('access_token', response.accessToken);
         const session: UserSession = {
